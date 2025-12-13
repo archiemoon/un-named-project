@@ -104,11 +104,11 @@ body {
 .pill-nav {
     position: fixed;
     bottom: 30px;
-    left: 110px;
-    right: 110px;
+    left: 80px;
+    right: 80px;
 
     display: flex;
-    gap: 10px;
+    gap: 13px;
     padding: 6px;
     border-radius: 50px;
     z-index: 1000;

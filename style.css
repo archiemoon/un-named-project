@@ -56,9 +56,8 @@ body {
 }
 
 #top-bar-start-btn {
-    margin-left: 70px;
+    margin-left: calc(100vw - 335px);
     margin-top: 14px;
-
 
     width: 70px;
     height: 40px;

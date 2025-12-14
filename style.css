@@ -11,7 +11,7 @@
     --text-main: rgb(66, 66, 66);
     --text-accent: rgb(120, 120, 120);
     --green-accent: rgba(39, 179, 34, 1);
-    --profile-bubble: rgb(234, 234, 234);
+    --internal-container: rgb(234, 234, 234);
 }
 
 body {
@@ -28,7 +28,7 @@ body.dark {
     --text-main: rgb(214, 214, 214);
     --text-accent: rgb(120, 120, 120);
     --green-accent: rgba(39, 179, 34, 1);
-    --profile-bubble: rgb(66, 66, 66);
+    --internal-container: rgb(66, 66, 66);
 }
 
 /*///////////////////////////////
@@ -264,7 +264,7 @@ body.dark {
     width: 280px;
     height: 90px;
     border-radius: 20px;
-    background-color: var(--profile-bubble);
+    background-color: var(--internal-container);
     box-shadow: 0 0px 4px 0 var(--shadow);
 
     position: fixed;

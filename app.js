@@ -138,7 +138,7 @@ function handlePositionUpdate(position) {
 
     ////////////////
     document.getElementById("dbg-speed").textContent =
-        speedKph.toFixed(1);
+        (speedMps*2.23694).toFixed(1);
 
     document.getElementById("dbg-distance").textContent =
         liveDrive.distanceKm.toFixed(3);
@@ -238,9 +238,16 @@ function toggleDarkMode() {
 const switcherBtn = document.getElementById("top-bar-mode-btn");
 switcherBtn.addEventListener("click", toggleDarkMode);
 
+////////////////////////
+// Recent Trips 
+////////////////////////
+
+function renderTrips() {
+
+}
 
 ////////////////////////
-// Page Switcher
+// Bottom Nav (Func ran when btn pressed)
 ////////////////////////
 
 function setActiveNav(buttonId) {

@@ -22,8 +22,8 @@ body {
 
 body.dark {
     --bg-main: rgb(33, 33, 33);
-    --bg-panel: rgb(27, 27, 27);
-    --shadow: rgba(236, 236, 236, 0.3);
+    --bg-panel: rgb(29, 29, 29);
+    --shadow: rgba(132, 132, 132, 0.434);
     --btn-icon: rgb(173, 173, 173);
     --text-main: rgb(214, 214, 214);
     --text-accent: rgb(120, 120, 120);
@@ -267,10 +267,26 @@ body.dark {
     background-color: var(--internal-container);
     box-shadow: 0 0px 4px 0 var(--shadow);
 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 35px;
+
+    color: var(--text-main);
+    font-weight: 250;
+    font-size: 20px;
+
     position: fixed;
     top: 78%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+
+.profile-content-layout {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 #profile-name {

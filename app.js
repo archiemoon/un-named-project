@@ -6,16 +6,14 @@ let liveDrive = null;
 
 function startDrive() {
     console.log("Drive Started");
+
+    //Time in ms from epoch
     const now = Date.now();
 
     liveDrive = {
         startTime: now,
         lastUpdate: now,
-
         distanceKm: 0,
-        totalSpeed: 0,
-        speedSamples: 0,
-
         fuelUsedLitres: 0
     };
 }
@@ -25,17 +23,20 @@ function updateDistance(speedKph, deltaSeconds) {
     liveDrive.distanceKm += kmPerSecond * deltaSeconds;
 }
 
-function updateAverageSpeed(speedKph) {
-    liveDrive.totalSpeed += speedKph;
-    liveDrive.speedSamples += 1;
-}
-
 function getAverageSpeed() {
-    if (liveDrive.speedSamples === 0) return 0;
-    return liveDrive.totalSpeed / liveDrive.speedSamples;
+    if (!liveDrive) return 0;
+
+    const elapsedSeconds =
+    (Date.now() - liveDrive.startTime) / 1000;
+
+    if (elapsedSeconds === 0) return 0;
+
+    const hours = elapsedSeconds / 3600;
+    return liveDrive.distanceKm / hours;
 }
 
-const LITRES_PER_100KM = 7.5;
+
+const LITRES_PER_100KM = 5.65;
 
 function updateFuelUsed(deltaDistanceKm) {
   liveDrive.fuelUsedLitres += (deltaDistanceKm / 100) * LITRES_PER_100KM;
@@ -99,7 +100,7 @@ function startGPS() {
 }
 
 function handleGPSError(error) {
-    onsole.error("GPS error:", error);
+    console.error("GPS error:", error);
 
     switch (error.code) {
     case error.PERMISSION_DENIED:
@@ -133,6 +134,7 @@ function handlePositionUpdate(position) {
     if (speedMps === null) return; // GPS not ready yet
 
     const speedKph = speedMps * 3.6;
+    if (speedKph < 2) return;
 
     updateLiveFromSpeed(speedKph);
 
@@ -141,13 +143,19 @@ function handlePositionUpdate(position) {
         (speedMps*2.23694).toFixed(1);
 
     document.getElementById("dbg-distance").textContent =
-        liveDrive.distanceKm.toFixed(3);
+        (liveDrive.distanceKm * 0.621371).toFixed(3);
 
     document.getElementById("dbg-fuel").textContent =
         liveDrive.fuelUsedLitres.toFixed(3);
 
     document.getElementById("dbg-avg-speed").textContent =
-        getAverageSpeed().toFixed(1);
+        (getAverageSpeed() * 0.621371).toFixed(1);
+
+    document.getElementById("dbg-mpg").textContent =
+        (calculateMPG(
+            liveDrive.distanceKm,
+            liveDrive.fuelUsedLitres
+        ));
     ////////////////
 }
 
@@ -159,7 +167,6 @@ function updateLiveFromSpeed(speedKph) {
     const prevDistance = liveDrive.distanceKm;
 
     updateDistance(speedKph, deltaSeconds);
-    updateAverageSpeed(speedKph);
     updateFuelUsed(liveDrive.distanceKm - prevDistance);
 }
 

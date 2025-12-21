@@ -307,6 +307,7 @@ body.dark {
 
 .profile-figure {
     color: var(--text-accent);
+    font-weight: 400;
 }
 
 .profile-header {

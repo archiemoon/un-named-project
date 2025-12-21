@@ -4,8 +4,6 @@
 
 let liveDrive = null;
 let timeInterval = null;
-let prevSpeedKph = null;
-
 
 function startDrive() {
     console.log("Drive Started");
@@ -16,6 +14,8 @@ function startDrive() {
     liveDrive = {
         startTime: now,
         lastSpeedKph: 0,
+        lastGpsTime: null,
+        prevSpeedKph: null,
         activeSeconds: 0,
         distanceKm: 0,
         fuelUsedLitres: 0
@@ -33,13 +33,12 @@ function startActiveTimer() {
 
         liveDrive.activeSeconds += 1;
 
-        const deltaHours = 1 / 3600;
-
+        // IDLE FUEL (time-based)
         if (liveDrive.lastSpeedKph < 2) {
+            const deltaHours = 1 / 3600;
             liveDrive.fuelUsedLitres +=
-            IDLE_LITRES_PER_HOUR * deltaHours;
+                IDLE_LITRES_PER_HOUR * deltaHours;
         }
-
     }, 1000);
 }
 
@@ -65,10 +64,6 @@ function getAverageSpeed() {
 const LITRES_PER_100KM = 5.65;
 const IDLE_LITRES_PER_HOUR = 0.8; // realistic range: 0.5–1.0
 
-function updateFuelUsed(deltaDistanceKm) {
-    liveDrive.fuelUsedLitres += (deltaDistanceKm / 100) * LITRES_PER_100KM;
-}
-
 function calculateMPG(distanceKm, fuelLitres) {
     if (fuelLitres === 0) return 0;
 
@@ -82,6 +77,7 @@ function stopDrive() {
     console.log("Drive Stopped");
 
     stopActiveTimer()
+    appState.paused = false;
 
     const driveSummary = {
         date: new Date().toISOString().split("T")[0],
@@ -115,6 +111,8 @@ navigator.geolocation.getCurrentPosition(
 let geoWatchId = null;
 
 function startGPS() {
+    if (geoWatchId !== null) return;
+
     geoWatchId = navigator.geolocation.watchPosition(
         handlePositionUpdate,
         handleGPSError,
@@ -164,7 +162,19 @@ function handlePositionUpdate(position) {
 
     liveDrive.lastSpeedKph = speedKph;
 
-    updateLiveFromSpeed(speedKph);
+    const now = position.timestamp;
+
+    if (!liveDrive.lastGpsTime) {
+        liveDrive.lastGpsTime = now;
+        liveDrive.prevSpeedKph = speedKph;
+        return;
+    }
+
+    const deltaSeconds = (now - liveDrive.lastGpsTime) / 1000;
+    liveDrive.lastGpsTime = now;
+
+    updateLiveFromSpeed(speedKph, deltaSeconds);
+
 
     ////////////////
     document.getElementById("dbg-time").textContent =
@@ -190,14 +200,54 @@ function handlePositionUpdate(position) {
     ////////////////
 }
 
-function updateLiveFromSpeed(speedKph) {
-    const deltaSeconds = 1;
+function updateLiveFromSpeed(speedKph, deltaSeconds) {
+    if (deltaSeconds <= 0) return;
 
     const prevDistance = liveDrive.distanceKm;
 
+    // ---- ACCELERATION (proxy for throttle) ----
+    let acceleration = 0;
+    if (liveDrive.prevSpeedKph !== null) {
+        acceleration = (speedKph - liveDrive.prevSpeedKph) / deltaSeconds;
+        acceleration = Math.max(-5, Math.min(acceleration, 5));
+    }
+
+    liveDrive.prevSpeedKph = speedKph;
+
+    // ---- COASTING / ENGINE BRAKING ----
+    const isCoasting =
+        speedKph > 20 && acceleration < -0.5;
+
+    // ---- DISTANCE ----
     if (speedKph >= 2) {
         updateDistance(speedKph, deltaSeconds);
-        updateFuelUsed(liveDrive.distanceKm - prevDistance);
+    }
+
+    const deltaDistanceKm =
+        liveDrive.distanceKm - prevDistance;
+
+    // ---- FUEL MULTIPLIER ----
+    let fuelMultiplier = 1;
+
+    // Acceleration penalty
+    if (acceleration > 1.5) fuelMultiplier = 1.4;
+    else if (acceleration > 0.5) fuelMultiplier = 1.15;
+
+    // Speed efficiency curve
+    if (speedKph < 30) fuelMultiplier *= 1.3;
+    else if (speedKph > 120) fuelMultiplier *= 1.25;
+
+    // ---- FUEL USE ----
+    if (isCoasting) {
+    // assume fuel cut-off only while moving
+    if (speedKph > 10) return;
+    }
+
+    if (speedKph >= 2) {
+        liveDrive.fuelUsedLitres +=
+        (deltaDistanceKm / 100) *
+        LITRES_PER_100KM *
+        fuelMultiplier;
     }
 }
 

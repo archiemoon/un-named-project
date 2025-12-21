@@ -39,7 +39,7 @@ function getAverageSpeed() {
 const LITRES_PER_100KM = 5.65;
 
 function updateFuelUsed(deltaDistanceKm) {
-  liveDrive.fuelUsedLitres += (deltaDistanceKm / 100) * LITRES_PER_100KM;
+    liveDrive.fuelUsedLitres += (deltaDistanceKm / 100) * LITRES_PER_100KM;
 }
 
 function calculateMPG(distanceKm, fuelLitres) {
@@ -143,7 +143,7 @@ function handlePositionUpdate(position) {
         (speedMps*2.23694).toFixed(1);
 
     document.getElementById("dbg-distance").textContent =
-        (liveDrive.distanceKm * 0.621371).toFixed(3);
+        (liveDrive.distanceKm * 0.621371).toFixed(1);
 
     document.getElementById("dbg-fuel").textContent =
         liveDrive.fuelUsedLitres.toFixed(3);
@@ -155,7 +155,7 @@ function handlePositionUpdate(position) {
         (calculateMPG(
             liveDrive.distanceKm,
             liveDrive.fuelUsedLitres
-        ));
+        ).toFixed(1));
     ////////////////
 }
 
@@ -179,7 +179,10 @@ function updateLiveFromSpeed(speedKph) {
 // Start/Stop button logic
 ////////////////////////
 
-const appState = { mode: "idle" };
+const appState = { 
+    mode: "idle",
+    paused: flase
+};
 
 function enterDrivingMode() {
     appState.mode = "driving";
@@ -191,18 +194,45 @@ function exitDrivingMode() {
     document.getElementById("driving-mode").classList.add("hidden");
 }
 
+function updatePauseIcon() {
+    const icon = document.querySelector("#pause-btn i");
+
+    if (appState.paused) {
+        icon.classList.remove("fa-pause");
+        icon.classList.add("fa-play");
+    } else {
+        icon.classList.remove("fa-play");
+        icon.classList.add("fa-pause");
+    }
+}
+
+function resetPauseIcon() {
+    const icon = document.querySelector("#pause-btn i");
+
+    if (icon.classList.contains("fa-play")) {
+        icon.classList.remove("fa-play");
+        icon.classList.add("fa-pause");
+    }
+}
+
 const startBtn = document.getElementById("top-bar-start-btn");
 const stopBtn = document.getElementById("stop-btn");
+const pauseBtn = document.getElementById("pause-btn");
 
 startBtn.addEventListener("click", () => {
     enterDrivingMode();
-    startDrive();
-    startGPS();
+    //startDrive();
+    //startGPS();
 });
 stopBtn.addEventListener("click", () => {
-    stopGPS();
-    stopDrive();
+    //stopGPS();
+    //stopDrive();
+    resetPauseIcon();
     exitDrivingMode();
+});
+pauseBtn.addEventListener("click", () => {
+    appState.paused = !appState.paused;
+    updatePauseIcon();
 });
 
 

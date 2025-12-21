@@ -69,7 +69,7 @@
     <div id="statistics-page" class="page hidden">
         <div id="debug-header">
             <div>Speed: <span id="dbg-speed">0</span> mph</div>
-            <div>Distance: <span id="dbg-distance">0</span> km</div>
+            <div>Distance: <span id="dbg-distance">0</span> miles</div>
             <div>Fuel: <span id="dbg-fuel">0</span> L</div>
             <div>Avg Speed: <span id="dbg-avg-speed">0</span> mph</div>
             <div>Efficiency: <span id="dbg-mpg">0</span> mpg</div>
@@ -84,7 +84,7 @@
                 <header>Archie Moon</header>
             </div>
             <div id="profile-info">
-                <header>Developer of RouteVision</header>
+                <!--<header>Developer of RouteVision</header>-->
                 <header>BSc CompSci @ Uni of Surrey</header>
                 <header>‎</header>
                 <header>archie.moon04@gmail.com</header>
@@ -104,16 +104,16 @@
             </div>
             <div id="profile-content">
                 <div id="profile-content-drives" class="profile-content-layout">
-                    <div id="total-drives">323</div>
-                    <div id="total-drives">Drives</div>
+                    <div id="total-drives" class="profile-figure">323</div>
+                    <div id="total-drives-header" class="profile-header">Drives</div>
                 </div>
                 <div id="profile-content-miles" class="profile-content-layout">
-                    <div id="total-miles" class="">12,349</div>
-                    <div id="total-miles">Miles</div>
+                    <div id="total-miles" class="profile-figure">12,349</div>
+                    <div id="total-miles-header" class="profile-header">Miles</div>
                 </div>
                 <div id="profile-content-hours" class="profile-content-layout">
-                    <div id="total-hours">64.3</div>
-                    <div id="total-hours">Hours</div>
+                    <div id="total-hours" class="profile-figure">64.3</div>
+                    <div id="total-hours-header" class="profile-header">Hours</div>
                 </div>
             </div>
         </div>
@@ -140,6 +140,9 @@
     <!-- Driving Mode View -->
     <div id="driving-mode" class="hidden">
         <button id="stop-btn">Stop</button>
+        <button id="pause-btn">
+            <i class="fa-solid fa-pause"></i>
+        </button>
     </div>
 
 <script src="app.js"></script>

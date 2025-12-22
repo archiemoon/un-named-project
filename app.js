@@ -250,7 +250,7 @@ function updateLiveFromSpeed(speedKph, deltaSeconds) {
     let warmupMultiplier = 1;
 
     // First 5 minutes = less efficient
-    if (liveDrive.activeSeconds < 180) warmupMultiplier = 1.4;
+    if (liveDrive.activeSeconds < 180) warmupMultiplier = 1.4  ;
     else if (liveDrive.activeSeconds < 300) warmupMultiplier = 1.2;
 
     // ---- URBAN PENALTY ----
@@ -392,6 +392,39 @@ const switcherBtn = document.getElementById("top-bar-mode-btn");
 switcherBtn.addEventListener("click", toggleDarkMode);
 
 //////////////////////// Home Page ////////////////////////
+
+function updateFuelPrice() {
+    navigator.geolocation.getCurrentPosition(async pos => {
+        try {
+            const price = await getLocalE10Price(
+                pos.coords.latitude,
+                pos.coords.longitude
+            );
+
+            if (price == null) {
+                console.warn("Fuel price unavailable");
+                return;
+            }
+
+            const fuelPriceText = document.getElementById("fuel-price");
+            if (!fuelPriceText) return;
+            fuelPriceText.textContent = price.toFixed(1);
+
+            console.log("Local E10:", price.toFixed(1), "p/L");
+        } catch (err) {
+            console.error("Failed to update fuel price", err);
+        }
+    });
+}
+
+async function getLocalE10Price(lat, lng) {
+    const res = await fetch(
+        `https://fuel-price-proxy.archie-moon04.workers.dev/?lat=${lat}&lng=${lng}&radius=10`
+    );
+    const data = await res.json();
+    return data.avgE10PencePerLitre;
+}
+
 
 ////////////////////////
 // Recent Trips 
@@ -552,3 +585,5 @@ document.getElementById("profile-btn")
 });
 
 renderRecentTrips();
+
+updateFuelPrice();

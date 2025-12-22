@@ -1,0 +1,43 @@
+:root {
+    --bg-main: rgb(249, 248, 248);
+    --bg-panel: rgba(249, 246, 246, 1);
+    --shadow: rgba(31, 38, 135, 0.3);
+    --btn-icon: rgb(173, 173, 173);
+    --text-main: rgb(66, 66, 66);
+    --text-accent: rgb(120, 120, 120);
+    --green-accent: rgba(39, 179, 34, 1);
+    --internal-container: rgb(234, 234, 234);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 
+    "Segoe UI", Roboto, 
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+body.dark {
+    --bg-main: rgb(33, 33, 33);
+    --bg-panel: rgb(29, 29, 29);
+    --shadow: rgba(132, 132, 132, 0.434);
+    --btn-icon: rgb(173, 173, 173);
+    --text-main: rgb(214, 214, 214);
+    --text-accent: rgb(120, 120, 120);
+    --green-accent: rgba(39, 179, 34, 1);
+    --internal-container: rgb(66, 66, 66);
+}
+
+/*///////////////////////////////
+// Hidden Attributes Tags
+///////////////////////////////*/
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+.hidden {
+    display: none;
+}

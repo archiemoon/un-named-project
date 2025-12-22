@@ -1,0 +1,84 @@
+/*///////////////////////////////
+// Home Page Styling
+///////////////////////////////*/
+
+#home-page {
+    margin-top: 70px;
+    margin-bottom: 100px;
+}
+
+#car-photo {
+    position: relative;
+    inset: 0;
+
+    width: min(80vw, 900px);
+    aspect-ratio: 154 / 102;
+
+    background-image: url(../images/car-photo.png);
+    background-size: cover;
+    background-position: center;
+
+    margin: 40px auto 0;
+}
+
+#fuel-price-box {
+    width: 77px;
+    height: 30px;
+    border-radius: 15px;
+    background-color: var(--bg-panel);
+    box-shadow: 0 0px 3px 0 var(--shadow);
+
+    position: relative;
+    top: 55px;
+    left: 20%;
+    transform: translate(-50%, -50%);
+}
+
+#fuel-icon {
+    width: 25px;
+    height: 25px;
+    border-radius: 15px;
+
+    background-image: url(../images/E10-fuel-label.png);
+    background-size: cover;
+    background-position: center;
+
+    position: fixed;
+    top: 50%;
+    left: 20%;
+    transform: translate(-50%, -50%);
+}
+
+#fuel-price {
+    width: 40px;
+    height: 25px;
+
+    display: flex;
+    align-items: center;
+    font-size: 15px;
+
+    color: var(--text-main);
+
+    position: fixed;
+    top: 46%;
+    left: 66%;
+    transform: translate(-50%, -50%);
+}
+
+
+.main-content-panel {
+    width: min(80vw, 900px);
+    padding: 5px 5px 5px;
+
+    background: var(--bg-panel);
+    box-shadow: 0 4px 15px 0 var(--shadow);
+    border-radius: 20px;
+
+    font-weight: bold;
+    color: var(--text-main);
+    margin: 30px auto 0;
+}
+
+.panel-header {
+    padding: 10px;
+}

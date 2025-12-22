@@ -1,0 +1,38 @@
+#driving-mode {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: black;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    align-items: center;
+    justify-content: center;
+}
+
+#driving-mode.hidden {
+    display: none;
+}
+
+#stop-btn {
+    font-size: 24px;
+    padding: 20px 40px;
+    border-radius: 50px;
+    background: #3232326f;
+    color: rgb(89, 89, 89);
+    border: 2px solid rgb(89, 89, 89);
+}
+
+#pause-btn {
+    font-size: 24px;
+    padding: 10px 20px;
+    border-radius: 50px;
+    background: #3232326f;
+    color: rgb(89, 89, 89);
+    border: 2px solid rgb(89, 89, 89);
+}
+
+#debug-header {
+    color: white;
+}

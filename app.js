@@ -1,19 +1,18 @@
 ////////////////////////
-// 
+// Data Tracking Logic
 ////////////////////////
 
 let liveDrive = null;
 let timeInterval = null;
 
 function startDrive() {
-    console.log("Drive Started");
-
     //Time in ms from epoch
     const now = Date.now();
 
     liveDrive = {
         startTime: now,
         lastSpeedKph: 0,
+        recentSpeeds: [],
         lastGpsTime: null,
         prevSpeedKph: null,
         activeSeconds: 0,
@@ -74,8 +73,6 @@ function calculateMPG(distanceKm, fuelLitres) {
 }
 
 function stopDrive() {
-    console.log("Drive Stopped");
-
     stopActiveTimer()
     appState.paused = false;
 
@@ -151,8 +148,6 @@ function stopGPS() {
 }
 
 function handlePositionUpdate(position) {
-    console.log("Tracking...");
-
     if (!liveDrive) return;
     if (appState.paused) return;
 
@@ -162,6 +157,13 @@ function handlePositionUpdate(position) {
     const speedKph = speedMps * 3.6;
 
     liveDrive.lastSpeedKph = speedKph;
+
+    liveDrive.recentSpeeds.push(speedKph);
+
+    // keep last 60 seconds (assuming ~1s GPS)
+    if (liveDrive.recentSpeeds.length > 60) {
+        liveDrive.recentSpeeds.shift();
+    }
 
     const now = position.timestamp;
 
@@ -244,12 +246,35 @@ function updateLiveFromSpeed(speedKph, deltaSeconds) {
     if (speedKph > 10) return;
     }
 
+    // ---- WARM-UP PENALTY ----
+    let warmupMultiplier = 1;
+
+    // First 5 minutes = less efficient
+    if (liveDrive.activeSeconds < 180) warmupMultiplier = 1.4;
+    else if (liveDrive.activeSeconds < 300) warmupMultiplier = 1.2;
+
+    // ---- URBAN PENALTY ----
+    let urbanMultiplier = 1;
+
+    const avgSpeedKph = getRecentAverageSpeed();
+
+    if (avgSpeedKph < 20) urbanMultiplier = 1.4;
+    else if (avgSpeedKph < 30) urbanMultiplier = 1.25;
+
     if (speedKph >= 2) {
         liveDrive.fuelUsedLitres +=
         (deltaDistanceKm / 100) *
         LITRES_PER_100KM *
-        fuelMultiplier;
+        fuelMultiplier *
+        warmupMultiplier *
+        urbanMultiplier;
     }
+}
+
+function getRecentAverageSpeed() {
+    if (liveDrive.recentSpeeds.length === 0) return 0;
+    return liveDrive.recentSpeeds.reduce((a, b) => a + b, 0) /
+    liveDrive.recentSpeeds.length;
 }
 
 
@@ -442,28 +467,7 @@ resetBtn.addEventListener("click", () => {
 
 //////////////////////// Stats Page ////////////////////////
 
-//
-
-////////////////////////
-// Bottom Nav (Func ran when btn pressed)
-////////////////////////
-
-function setActiveNav(buttonId) {
-    document.querySelectorAll(".nav-btn")
-    .forEach(btn => btn.classList.remove("active"));
-
-    document.getElementById(buttonId).classList.add("active");
-}
-
-function showPage(pageId) {
-    const pages = document.querySelectorAll(".page");
-
-    pages.forEach(page => {
-        page.classList.remove("active");
-    });
-
-    document.getElementById(pageId).classList.add("active");
-}
+//////////////////////// Profile Page ////////////////////////
 
 function updateProfileStats() {
     const drives = JSON.parse(localStorage.getItem("drives")) || [];
@@ -498,6 +502,27 @@ function updateProfileStats() {
     } else {
         totalHoursText.textContent = totalHours.toFixed(2);
     }
+}
+
+////////////////////////
+// Bottom Nav btns
+////////////////////////
+
+function setActiveNav(buttonId) {
+    document.querySelectorAll(".nav-btn")
+    .forEach(btn => btn.classList.remove("active"));
+
+    document.getElementById(buttonId).classList.add("active");
+}
+
+function showPage(pageId) {
+    const pages = document.querySelectorAll(".page");
+
+    pages.forEach(page => {
+        page.classList.remove("active");
+    });
+
+    document.getElementById(pageId).classList.add("active");
 }
 
 document.getElementById("home-btn")

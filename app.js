@@ -253,16 +253,18 @@ function updateLiveFromSpeed(speedKph, deltaSeconds) {
     let warmupMultiplier = 1;
 
     // First 5 minutes = less efficient
-    if (liveDrive.activeSeconds < 180) warmupMultiplier = 1.4  ;
-    else if (liveDrive.activeSeconds < 300) warmupMultiplier = 1.2;
+    if (liveDrive.activeSeconds < 180) warmupMultiplier = 1.3  ;
+    else if (liveDrive.activeSeconds < 300) warmupMultiplier = 1.15;
 
     // ---- URBAN PENALTY ----
     let urbanMultiplier = 1;
 
     const avgSpeedKph = getRecentAverageSpeed();
 
-    if (avgSpeedKph < 25) urbanMultiplier = 1.45;
-    else if (avgSpeedKph < 35) urbanMultiplier = 1.3;
+    // Only penalise when actually slow
+    if (avgSpeedKph < 25 && speedKph < 35) {
+        urbanMultiplier = 1.2;
+    }
 
     const combinedMultiplier =
     fuelMultiplier * warmupMultiplier * urbanMultiplier;

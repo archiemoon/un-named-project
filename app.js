@@ -90,6 +90,7 @@ function stopDrive() {
         distanceMiles: (liveDrive.distanceKm * 0.621371).toFixed(1),
         averageSpeedMPH: (getAverageSpeed()* 0.621371).toFixed(1),
         fuelUsedLitres: liveDrive.fuelUsedLitres.toFixed(3),
+        fuelPrice: getLocalE10Price().toFixed(1),
         estimatedMPG: calculateMPG(
             liveDrive.distanceKm,
             liveDrive.fuelUsedLitres
@@ -403,13 +404,9 @@ switcherBtn.addEventListener("click", toggleDarkMode);
 
 //////////////////////// Home Page ////////////////////////
 
-function updateFuelPrice() {
-    navigator.geolocation.getCurrentPosition(async pos => {
+async function updateFuelPrice() {
         try {
-            const price = await getLocalE10Price(
-                pos.coords.latitude,
-                pos.coords.longitude
-            );
+            const price = await getLocalE10Price();
 
             if (price == null) {
                 console.warn("Fuel price unavailable");
@@ -424,12 +421,11 @@ function updateFuelPrice() {
         } catch (err) {
             console.error("Failed to update fuel price", err);
         }
-    });
 }
 
-async function getLocalE10Price(lat, lng) {
+async function getLocalE10Price() {
     const res = await fetch(
-        `https://fuel-price-proxy.archie-moon04.workers.dev/?lat=${lat}&lng=${lng}&radius=10`
+        `https://fuel-price-proxy.archie-moon04.workers.dev/?lat=50.82189301841593&lng=-0.39384163834533775&radius=10`
     );
     const data = await res.json();
     return data.avgE10PencePerLitre;
@@ -528,66 +524,74 @@ function renderAllTrips() {
     const count = drives.length;
 
     for (let i = 0; i < count; i++) {
-    const drive = drives[drives.length - 1 - i];
+        const drive = drives[drives.length - 1 - i];
 
-    const cell = document.createElement("div");
-    cell.style.position = "relative";
-    cell.style.height = "55px";
-    cell.style.borderRadius = "15px";
-    cell.style.display = "flex";
-    cell.style.alignItems = "center";
-    cell.style.justifyContent = "space-between";
-    cell.style.fontSize = "12px";
-    cell.style.fontWeight = "700";
-    cell.style.color = "var(--text-main)";
-    cell.style.boxShadow = "0 0px 4px 0 var(--shadow)";
-    cell.style.margin = "10px 2px 8px 2px";
-    cell.style.padding = "0 12px";
+        const cell = document.createElement("div");
+        cell.style.position = "relative";
+        cell.style.height = "80px";
+        cell.style.borderRadius = "15px";
+        cell.style.display = "flex";
+        cell.style.alignItems = "center";
+        cell.style.justifyContent = "space-between";
+        cell.style.fontSize = "12px";
+        cell.style.fontWeight = "700";
+        cell.style.color = "var(--text-main)";
+        cell.style.boxShadow = "0 0px 4px 0 var(--shadow)";
+        cell.style.margin = "10px 2px 8px 2px";
+        cell.style.padding = "0 12px";
 
-    // ---- text ----
-    const text = document.createElement("div");
-    text.style.display = "flex";
-    text.style.flexDirection = "column";
-    text.style.lineHeight = "1.2";
+        // ---- text ----
+        const text = document.createElement("div");
+        text.style.display = "flex";
+        text.style.flexDirection = "column";
+        text.style.lineHeight = "1.2";
 
-// ---- line 1 ----
-    const line1 = document.createElement("span");
-    line1.textContent = `${drive.date} @ ${formatTime(i)}`;
-    line1.style.fontSize = "16px";
-    line1.style.fontWeight = "700";
+        // ---- line 1 ----
+        const line1 = document.createElement("span");
+        line1.textContent = `${drive.date} @ ${formatTime(i)}`;
+        line1.style.fontSize = "16px";
+        line1.style.fontWeight = "700";
 
-// ---- line 2 ----
-    const line2 = document.createElement("span");
-    line2.textContent = 
-        `${drive.distanceMiles}mi | ${formatDuration(i)} | ${drive.estimatedMPG}mpg`;
-    line2.style.fontSize = "15px";
-    line2.style.fontWeight = "600";
-    line2.style.color = "var(--text-accent)";
+        // ---- line 2 ----
+        const line2 = document.createElement("span");
 
-    // ---- delete button ----
-    const deleteButton = document.createElement("button");
-    deleteButton.textContent = "✕";
-    deleteButton.style.borderRadius = "50%";
-    deleteButton.style.backgroundColor = "var(--red-accent)";
-    deleteButton.style.boxShadow = "0 0px 5px 0 var(--red-accent)";
-    deleteButton.style.color = "white";
-    deleteButton.style.border = "none";
-    deleteButton.style.width = "30px";
-    deleteButton.style.height = "30px";
-    deleteButton.style.cursor = "pointer";
+        const price =
+            Number.isFinite(drive.fuelPrice)
+                ? drive.fuelPrice
+                : 137.9; // if no price saved, revert to fixed value
 
-    deleteButton.onclick = () => {
-        deleteDriveByStartTime(drive.startTime);
-        cell.remove();
-    };
+        line2.style.whiteSpace = "pre-line";
+        line2.textContent = 
+            `${drive.distanceMiles}mi | ${formatDuration(i)} | ${drive.averageSpeedMPH}mph
+            ${drive.estimatedMPG}mpg | ${drive.fuelUsedLitres}l | £${(drive.fuelUsedLitres * (price/100)).toFixed(2)}`;
+        line2.style.fontSize = "15px";
+        line2.style.fontWeight = "600";
+        line2.style.color = "var(--text-accent)";
 
-    text.appendChild(line1);
-    text.appendChild(line2);
-    cell.appendChild(text);
-    cell.appendChild(deleteButton);
+        // ---- delete button ----
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "fa-solid fa-trash-can";
+        deleteButton.style.borderRadius = "50%";
+        deleteButton.style.backgroundColor = "var(--red-accent)";
+        deleteButton.style.boxShadow = "0 0px 5px 0 var(--red-accent)";
+        deleteButton.style.color = "white";
+        deleteButton.style.border = "none";
+        deleteButton.style.width = "30px";
+        deleteButton.style.height = "30px";
+        deleteButton.style.cursor = "pointer";
 
-    tripsPage.appendChild(cell);
-}
+        deleteButton.onclick = () => {
+            deleteDriveByStartTime(drive.startTime);
+            cell.remove();
+        };
+
+        text.appendChild(line1);
+        text.appendChild(line2);
+        cell.appendChild(text);
+        cell.appendChild(deleteButton);
+
+        tripsPage.appendChild(cell);
+    }
 }
 
 function deleteDriveByStartTime(startTime) {

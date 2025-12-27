@@ -630,7 +630,7 @@ function normalizeDrive(drive) {
         distanceMiles: Number(drive.distanceMiles),
         durationSeconds: Number(drive.durationSeconds),
         fuelUsedLitres: Number(drive.fuelUsedLitres),
-        fuelPrice: Number(drive.fuelPrice),
+        fuelCost: Number(drive.fuelCost),
         averageSpeedMPH: Number(drive.averageSpeedMPH),
         estimatedMPG: Number(drive.estimatedMPG)
     };
@@ -684,15 +684,12 @@ function calculateStats(drives) {
         const miles = Number(d.distanceMiles);
         const seconds = Number(d.durationSeconds);
         const litres = Number(d.fuelUsedLitres);
-        const pricePence = Number(d.fuelPrice);
+        const cost = Number(d.fuelCost);
 
         totalMiles += Number.isFinite(miles) ? miles : 0;
         totalSeconds += Number.isFinite(seconds) ? seconds : 0;
         totalFuelLitres += Number.isFinite(litres) ? litres : 0;
-
-        if (Number.isFinite(litres) && Number.isFinite(pricePence)) {
-            totalFuelCost += litres * (pricePence / 100);
-        }
+        totalFuelCost += Number.isFinite(cost) ? cost : 0;
     });
 
     const hours = totalSeconds / 3600;
@@ -703,7 +700,7 @@ function calculateStats(drives) {
         hours,
         avgMPG:
             totalFuelLitres > 0
-                ? totalMiles / (totalFuelLitres * 0.219969)
+                ? (totalMiles / (totalFuelLitres * 0.219969)) * MPG_CALIBRATION
                 : 0,
         avgSpeed:
             hours > 0 ? totalMiles / hours : 0,

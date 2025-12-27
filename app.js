@@ -96,14 +96,18 @@ function stopDrive() {
         date: formattedDate,
         startTime: liveDrive.startTime,
         durationSeconds: Math.floor(liveDrive.activeSeconds),
-        distanceMiles: (liveDrive.distanceKm * 0.621371).toFixed(1),
-        averageSpeedMPH: (getAverageSpeed()* 0.621371).toFixed(1),
-        fuelUsedLitres: liveDrive.fuelUsedLitres.toFixed(3),
-        fuelCost: liveDrive.fuelUsedLitres * fuelPrice,
-        estimatedMPG: calculateMPG(
-            liveDrive.distanceKm,
-            liveDrive.fuelUsedLitres
-        ).toFixed(1)
+        distanceMiles: Number((liveDrive.distanceKm * 0.621371).toFixed(1)),
+        averageSpeedMPH: Number((getAverageSpeed() * 0.621371).toFixed(1)),
+        fuelUsedLitres: Number(liveDrive.fuelUsedLitres.toFixed(3)),
+        estimatedMPG: Number(
+            calculateMPG(
+                liveDrive.distanceKm,
+                liveDrive.fuelUsedLitres
+            ).toFixed(1)
+        ),
+        fuelCost: Number(
+            (liveDrive.fuelUsedLitres * (fuelPrice / 100)).toFixed(2)
+        )
     };
 
     const drives = JSON.parse(localStorage.getItem("drives")) || [];
@@ -541,7 +545,7 @@ function renderAllTrips() {
     const count = drives.length;
 
     for (let i = 0; i < count; i++) {
-        const drive = drives[drives.length - 1 - i];
+        const drive = normalizeDrive(drives[drives.length - 1 - i]);
 
         const cell = document.createElement("div");
         cell.style.position = "relative";
@@ -577,7 +581,7 @@ function renderAllTrips() {
         line2.style.whiteSpace = "pre-line";
         line2.textContent = 
             `${formatDuration(i)} | ${drive.distanceMiles}mi | ${drive.averageSpeedMPH}mph
-            ${drive.estimatedMPG}mpg | ${drive.fuelUsedLitres}l | £${price.toFixed(2)}`;
+            ${drive.estimatedMPG}mpg | ${drive.fuelUsedLitres.toFixed(3)}l | £${price.toFixed(2)}`;
         line2.style.fontSize = "15px";
         line2.style.fontWeight = "600";
         line2.style.color = "var(--text-accent)";

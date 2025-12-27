@@ -90,7 +90,7 @@ function stopDrive() {
     const [y, m, d] = iso.split("-");
     const formattedDate = `${d}/${m}/${y}`;
 
-    const fuelPrice = Number(localStorage.getItem("fuelPrice"));
+    const fuelPrice = parseFloat(localStorage.getItem("fuelPrice")) || 137.9;
 
     const driveSummary = {
         date: formattedDate,
@@ -99,7 +99,7 @@ function stopDrive() {
         distanceMiles: (liveDrive.distanceKm * 0.621371).toFixed(1),
         averageSpeedMPH: (getAverageSpeed()* 0.621371).toFixed(1),
         fuelUsedLitres: liveDrive.fuelUsedLitres.toFixed(3),
-        fuelPrice: fuelPrice.toFixed(1),
+        fuelCost: liveDrive.fuelUsedLitres * fuelPrice,
         estimatedMPG: calculateMPG(
             liveDrive.distanceKm,
             liveDrive.fuelUsedLitres
@@ -572,15 +572,12 @@ function renderAllTrips() {
         // ---- line 2 ----
         const line2 = document.createElement("span");
 
-        const price =
-            Number.isFinite(drive.fuelPrice)
-                ? drive.fuelPrice
-                : 137.9; // if no price saved, revert to fixed value
+        const price = Number(drive.fuelCost) || (drive.fuelUsedLitres * 137.9);
 
         line2.style.whiteSpace = "pre-line";
         line2.textContent = 
             `${formatDuration(i)} | ${drive.distanceMiles}mi | ${drive.averageSpeedMPH}mph
-            ${drive.estimatedMPG}mpg | ${drive.fuelUsedLitres}l | £${(drive.fuelUsedLitres * (price/100)).toFixed(2)}`;
+            ${drive.estimatedMPG}mpg | ${drive.fuelUsedLitres}l | £${price.toFixed(2)}`;
         line2.style.fontSize = "15px";
         line2.style.fontWeight = "600";
         line2.style.color = "var(--text-accent)";
@@ -623,7 +620,142 @@ function deleteDriveByStartTime(startTime) {
 
 //////////////////////// Stats Page ////////////////////////
 
+function normalizeDrive(drive) {
+    return {
+        startTime: Number(drive.startTime) || 0,
+        distanceMiles: Number(drive.distanceMiles) || 0,
+        durationSeconds: Number(drive.durationSeconds) || 0,
+        fuelUsedLitres: Number(drive.fuelUsedLitres) || 0,
+        fuelCost: Number(drive.fuelCost),
+        averageSpeedMPH: Number(drive.averageSpeedMPH) || 0,
+        estimatedMPG: Number(drive.estimatedMPG) || 0
+    };
+}
 
+function getDrivesForPeriod(period) {
+    const drives =
+        (JSON.parse(localStorage.getItem("drives")) || [])
+        .map(normalizeDrive);
+
+    if (period === "lifetime") return drives;
+
+    const now = Date.now();
+
+    let cutoff;
+    switch (period) {
+        case "week":
+            cutoff = now - 7 * 24 * 60 * 60 * 1000;
+            break;
+        case "month":
+            cutoff = now - 30 * 24 * 60 * 60 * 1000;
+            break;
+        case "year":
+            cutoff = now - 365 * 24 * 60 * 60 * 1000;
+            break;
+        default:
+            return drives;
+    }
+
+    return drives.filter(d => d.startTime >= cutoff);
+}
+
+function calculateStats(drives) {
+    if (drives.length === 0) {
+        return {
+            drives: 0,
+            miles: 0,
+            hours: 0,
+            avgMPG: 0,
+            avgSpeed: 0,
+            fuelCost: 0
+        };
+    }
+
+    let totalMiles = 0;
+    let totalSeconds = 0;
+    let totalFuelLitres = 0;
+    let totalFuelCost = 0;
+
+    drives.forEach(d => {
+        totalMiles += d.distanceMiles;
+        totalSeconds += d.durationSeconds;
+        totalFuelLitres += d.fuelUsedLitres;
+        totalFuelCost += d.fuelCost || (d.fuelUsedLitres * 137.9);
+    });
+
+    const hours = totalSeconds / 3600;
+
+    return {
+        drives: drives.length,
+        miles: totalMiles,
+        hours,
+        avgMPG:
+            totalFuelLitres > 0
+                ? totalMiles / (totalFuelLitres * 0.219969)
+                : 0,
+        avgSpeed:
+            hours > 0 ? totalMiles / hours : 0,
+        fuelCost: totalFuelCost
+    };
+}
+
+function getStats(period) {
+    const filteredDrives = getDrivesForPeriod(period);
+    return calculateStats(filteredDrives);
+}
+
+
+function renderStats() {
+    const tripsPage = document.getElementById("stats-page-content");
+    tripsPage.innerHTML = "";
+
+    const statsWeek = getStats("week");
+    const statsMonth = getStats("month");
+    const statsYear = getStats("year");
+    const statsLifetime = getStats("lifetime");
+
+    const cell = document.createElement("div");
+    cell.style.position = "relative";
+    cell.style.height = "80px";
+    cell.style.borderRadius = "15px";
+    cell.style.display = "flex";
+    cell.style.alignItems = "center";
+    cell.style.justifyContent = "space-between";
+    cell.style.fontSize = "12px";
+    cell.style.fontWeight = "700";
+    cell.style.color = "var(--text-main)";
+    cell.style.boxShadow = "0 0px 4px 0 var(--shadow)";
+    cell.style.margin = "10px 2px 8px 2px";
+    cell.style.padding = "0 12px";
+
+    // ---- text ----
+    const text = document.createElement("div");
+    text.style.display = "flex";
+    text.style.flexDirection = "column";
+    text.style.lineHeight = "1.2";
+
+    // ---- line 1 ----
+    const line1 = document.createElement("span");
+    line1.textContent = `${statsWeek.drives}`;
+    line1.style.fontSize = "16px";
+    line1.style.fontWeight = "700";
+
+    // ---- line 2 ----
+    const line2 = document.createElement("span");
+
+    line2.style.whiteSpace = "pre-line";
+    line2.textContent = "";
+    line2.style.fontSize = "15px";
+    line2.style.fontWeight = "600";
+    line2.style.color = "var(--text-accent)";
+
+    text.appendChild(line1);
+    text.appendChild(line2);
+    cell.appendChild(text);
+
+    tripsPage.appendChild(cell);
+
+}
 
 //////////////////////// Profile Page ////////////////////////
 
@@ -742,6 +874,7 @@ document.getElementById("compass-btn")
 document.getElementById("stats-btn")
 .addEventListener("click", () => {
     showPage("statistics-page");
+    renderStats();
     setActiveNav("stats-btn");
 });
 
@@ -756,7 +889,7 @@ function refreshPages() {
     renderRecentTrips();
     //renderStatsPreview();
     renderAllTrips();
-    //renderStats();
+    renderStats();
     updateProfileStats();
 }
 

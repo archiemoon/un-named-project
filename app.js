@@ -498,6 +498,7 @@ function renderRecentTrips() {
         cell.style.fontSize = "12px";
         cell.style.fontWeight = "700";
         cell.style.color = "var(--text-main)";
+        cell.style.backgroundColor = "var(--internal-container)";
         cell.style.boxShadow = "0 0px 4px 0 var(--shadow)";
         cell.style.marginBottom = "8px";
 
@@ -572,6 +573,7 @@ function renderAllTrips() {
         cell.style.justifyContent = "space-between";
         cell.style.fontSize = "12px";
         cell.style.fontWeight = "700";
+        cell.style.backgroundColor = "var(--bg-panel)";
         cell.style.color = "var(--text-main)";
         cell.style.boxShadow = "0 0px 4px 0 var(--shadow)";
         cell.style.margin = "10px 2px 8px 2px";
@@ -742,15 +744,15 @@ function createStatItem(label, value) {
 
     const valueEl = document.createElement("div");
     valueEl.textContent = value;
-    valueEl.style.fontSize = "20px";
-    valueEl.style.fontWeight = "800";
-    valueEl.style.color = "var(--text-main)";
+    valueEl.style.fontSize = "18px";
+    valueEl.style.fontWeight = "500";
+    valueEl.style.color = "var(--text-accent)";
 
     const labelEl = document.createElement("div");
     labelEl.textContent = label;
-    labelEl.style.fontSize = "14px";
-    labelEl.style.fontWeight = "500";
-    labelEl.style.color = "var(--text-accent)";
+    labelEl.style.fontSize = "18px";
+    labelEl.style.fontWeight = "600";
+    labelEl.style.color = "var(--text-main)";
 
     item.appendChild(valueEl);
     item.appendChild(labelEl);
@@ -763,10 +765,11 @@ function createStatsCard(period, titleText) {
 
     const cell = document.createElement("div");
     cell.style.position = "relative";
-    cell.style.height = "240px";
+    cell.style.height = "255px";
     cell.style.borderRadius = "15px";
     cell.style.display = "flex";
     cell.style.alignItems = "center";
+    cell.style.backgroundColor = "var(--bg-panel)";
     cell.style.boxShadow = "0 0px 10px 0 var(--shadow)";
     cell.style.margin = "16px 2px";
     cell.style.padding = "0 12px";
@@ -774,7 +777,7 @@ function createStatsCard(period, titleText) {
     const title = document.createElement("div");
     title.textContent = titleText;
     title.style.position = "absolute";
-    title.style.top = "6px";
+    title.style.top = "13px";
     title.style.left = "50%";
     title.style.color = "var(--text-main)";
     title.style.transform = "translateX(-50%)";
@@ -791,7 +794,7 @@ function createStatsCard(period, titleText) {
     innerCell.style.gridTemplateColumns = "1fr 1fr";
     innerCell.style.gridTemplateRows = "1fr 1fr 1fr";
     innerCell.style.gap = "8px";
-    innerCell.style.margin = "140px 2px 120px 2px";
+    innerCell.style.margin = "140px 2px 102px 2px";
     innerCell.style.backgroundColor = "var(--internal-container)";
     innerCell.style.boxShadow = "0 0px 4px 0 var(--shadow)";
     innerCell.style.padding = "12px";
@@ -814,8 +817,8 @@ function renderStats() {
     const statsPage = document.getElementById("stats-page-content");
     statsPage.innerHTML = "";
 
-    statsPage.style.paddingTop = "40px";
-    statsPage.style.paddingBottom = "40px";
+    statsPage.style.paddingTop = "60px";
+    statsPage.style.paddingBottom = "60px";
 
     statsPage.appendChild(createStatsCard("week", "Weekly Stats"));
     statsPage.appendChild(createStatsCard("month", "Monthly Stats"));

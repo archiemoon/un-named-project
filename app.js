@@ -27,8 +27,8 @@ const SPEED_EFF_STRENGTH = 0.15;     // higher = bigger penalty away from optima
 const COASTING_REDUCTION = 0.70;     // 0.6–0.85 (closer to 1 = less “free” coasting)
 
 // --- NEW: allow very low fuel during light-load cruise / downhill-overrun-like moments ---
-const MIN_L_PER_100KM_CRUISE = 1.2;   // stable high-speed cruise can be very low
-const MIN_L_PER_100KM_OVERUN = 0.25;  // near-fuel-cut-ish on overrun/downhill
+const MIN_L_PER_100KM_CRUISE = 2.1;   // stable high-speed cruise can be very low
+const MIN_L_PER_100KM_OVERRUN = 0.8;  // near-fuel-cut-ish on overrun/downhill
 
 // --- NEW: stability detection tuning ---
 const STABLE_SPEED_STD_KPH = 0.8;     // lower = stricter “stable speed”
@@ -48,6 +48,7 @@ function startDrive() {
         prevSmoothSpeedKph: null,
         activeSeconds: 0,
         distanceKm: 0,
+        downhillCreditKm: 0,
         fuelUsedLitres: 0
     };
 
@@ -310,14 +311,23 @@ function updateLiveFromSpeed(speedKphRaw, deltaSeconds) {
 
     // “Barely using fuel at 50mph on flat / slight downhill” case
     const isLightLoadCruise =
-        smoothSpeedKph > LIGHTLOAD_MIN_SPEED_KPH &&
-        isStable;
+    smoothSpeedKph > 60 &&
+    isStable &&
+    speedStd < 0.6;
 
     // “Overrun/downhill fuel-cut-ish” case:
     // catches classic decel AND “downhill slight accel while stable”
     const isOverrunLike =
-        smoothSpeedKph > OVERRUN_MIN_SPEED_KPH &&
-        (acceleration < -0.25 || (isStable && acceleration < 0.25));
+    smoothSpeedKph > OVERRUN_MIN_SPEED_KPH &&
+    (
+        acceleration < -0.35 ||                  // classic overrun decel
+        (isStable && speedStd < 0.4)              // gravity holding speed
+    );
+
+    // ---- DOWNHILL CREDIT ACCUMULATION ----
+    if (isOverrunLike && deltaDistanceKm > 0) {
+        liveDrive.downhillCreditKm += deltaDistanceKm;
+    }
 
     // ---- COASTING / ENGINE BRAKING (your original signal) ----
     const isCoasting = smoothSpeedKph > 20 && acceleration < -0.5;
@@ -377,11 +387,25 @@ function updateLiveFromSpeed(speedKphRaw, deltaSeconds) {
 
     // allow near-fuel-cut-ish during overrun/downhill-like conditions
     if (isOverrunLike) {
-        effectiveLPer100 = Math.min(effectiveLPer100, MIN_L_PER_100KM_OVERUN);
+        effectiveLPer100 = Math.min(effectiveLPer100, MIN_L_PER_100KM_OVERRUN);
     }
 
     // Safety: never negative / NaN
     if (!Number.isFinite(effectiveLPer100) || effectiveLPer100 < 0) return;
+
+    // ---- PAY BACK DOWNHILL CREDIT ON NORMAL DRIVING ----
+    if (!isOverrunLike && liveDrive.downhillCreditKm > 0) {
+        const paybackKm = Math.min(deltaDistanceKm, liveDrive.downhillCreditKm);
+
+        const paybackFuel =
+            (paybackKm / 100) *
+            LITRES_PER_100KM *
+            0.4; // mild uphill / recovery penalty
+
+        liveDrive.fuelUsedLitres += paybackFuel;
+        liveDrive.downhillCreditKm -= paybackKm;
+    }
+
 
     // ---- FUEL USE ----
     liveDrive.fuelUsedLitres += (deltaDistanceKm / 100) * effectiveLPer100;
